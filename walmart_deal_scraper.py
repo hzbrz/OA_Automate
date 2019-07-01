@@ -20,7 +20,11 @@ ul = product_div.find_element_by_class_name("search-result-gridview-items")
 # getting all list items that contain each item
 li_items = ul.find_elements_by_class_name("Grid-col")
 
-for i in range(len(li_items)):
+# counter for pagination used to check and update the link to navigate
+page_counter = 0
+
+item_counter = 0
+for i in range(len(li_items[:1])):
   # getting inside the list item so I can get more data for each item
   li_inner = li_items[i].find_element_by_class_name("search-result-gridview-item")
 
@@ -69,12 +73,21 @@ for i in range(len(li_items)):
   time.sleep(.5)
   #---------------------------------------------------------------------------------------
   print(product_name, "\n", item_price, "\n", product_link, "\n", company_name, "\n------------")
-  print(i, len(li_items))
+  print(i, len(li_items[:1]))
   # hook to see if all items have been scraped on the page and use it to navigate to next page
-  if i+1 == len(li_items):
+  if i+1 == len(li_items[:1]):
     print("page 2")
-
-
+    # incrementing the page number to match the links page number 
+    page_counter = page_counter + 1
+    # finding the page number and storing the index
+    page_no = dynamic_link.find(str(page_counter), 245, 254)
+    # creating the new link by replacing the (page=1) part of the link with my incremented counter
+    # replacign the entire page=1 part because if I only do the number it will change other numbers as well
+    next_page_link = dynamic_link.replace("page="+dynamic_link[page_no], "page="+str(page_counter+1))
+    # navigating to next page
+    driver.get(next_page_link)
+  
+  item_counter = item_counter + 1
 
 # TODO 1: figure out navigation between pages by changing the (dynamic_link) imported from secrets - hz 07/01
 # TODO 2: switch to another category when there is no more products to scrape in one category - hz 07/02
