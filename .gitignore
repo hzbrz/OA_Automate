@@ -1,0 +1,5 @@
+__pycache__
+secrets.py
+geckodriver.exe
+debug.log
+geckodriver.log

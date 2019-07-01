@@ -92,7 +92,7 @@ while(True):
 
   # need to increment here to not run into the IndexError
   item_counter = item_counter + 1
-  
+
   # print("line 87\n", page_counter, next_page_link)
   # hook to see if all items have been scraped on the page and use it to navigate to next page
   if item_counter == len(li_items[:2]):
@@ -115,10 +115,16 @@ while(True):
       driver.get(next_page_link)
 
   
-# TODO 1: figure out navigation between pages by changing the (dynamic_link) imported from secrets - hz 07/01
-# TODO 2: switch to another category when there is no more products to scrape in one category - hz 07/02
-# TODO 3: figure out optimal way to modify the link and automate moving categories -hz
+# TODO 1: figure out navigation between pages by changing the (dynamic_link) imported from secrets - hz 07/01 - DONE
+# TODO 2: switch to another category when there is no more products to scrape in one category - hz 07/02 - DONE
+# TODO 3: figure out optimal way to modify the link and automate moving categories -hz - DONE
 # TODO 4: Put all product data in a dictionary, the key should be number or name?
+          # data format:
+          # category
+              ## name
+                 ### price
+                 ### product link
+                 ### company name
 # TODO 4: turn code into componenets through functions (GENERAL GOAL)
 
 driver.close()
