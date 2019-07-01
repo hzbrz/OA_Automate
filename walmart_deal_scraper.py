@@ -2,7 +2,7 @@ from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
-from secrets import dynamic_link
+from secrets import dynamic_link, toys, books, electronics
 import time, pyperclip
 
 # main driver
@@ -10,22 +10,48 @@ driver = webdriver.Chrome()
 # goes to the initial link
 driver.get(dynamic_link)
 
+# dynamic link belongs to category 1, whatever intial link is
+category = 1
 
-# locating the main products on the page
-product_div = driver.find_element_by_id("searchProductResult")
-
-# getting the list of all items in the page
-ul = product_div.find_element_by_class_name("search-result-gridview-items")
 
 # counter for pagination used to check and update the link to navigate
 page_counter = 0
 
+next_page_link = ""
 item_counter = 0
-while(len(ul.find_elements_by_class_name("Grid-col")[:1]) > 0):
-  print(ul)
+while(True):
+  # locating the main products on the page
+  try:
+    product_div = driver.find_element_by_id("searchProductResult")
+  except NoSuchElementException:
+    print("No more pages in this category")
+    # setting it to the next category program id, this tracks which category the program is on as well 
+    # as avoids going back to the initial dynamic_link and sticks to the next_page_link
+    category = category + 1
+    # changing to the category_id to the new category's id
+    if category == 2:
+      next_page_link = next_page_link.replace("cat_id="+electronics, "cat_id="+toys)
+    elif category == 3:
+      next_page_link = next_page_link.replace("cat_id="+toys, "cat_id="+books)
+    else:
+      # if no more categories as of now then get out of the loop and end program
+      break
+    page_no = next_page_link.find(str(page_counter+1), 245, 254)
+    # setting the page_counter back to 0 becasue in a new category
+    page_counter = 0
+    # setting page number back to 1 because in new cat
+    next_page_link = next_page_link.replace("page="+next_page_link[page_no], "page=1")
+    # navigating to the new category
+    driver.get(next_page_link)
+    # re-setting back the product_div element to avoid NoSuchElementException
+    product_div = driver.find_element_by_id("searchProductResult")  
+  
+  # getting the list tag
+  ul = product_div.find_element_by_class_name("search-result-gridview-items")
+  
   # getting all list items that contain each item, also putting this inside the while so the list updates every loop
   # this is to reach the page where we are out of items and we can move on to the other category
-  li_items = ul.find_elements_by_class_name("Grid-col")
+  li_items = ul.find_elements_by_class_name("Grid-col")[:2]
   
   # getting inside the list item so I can get more data for each item
   li_inner = li_items[item_counter].find_element_by_class_name("search-result-gridview-item")
@@ -64,25 +90,31 @@ while(len(ul.find_elements_by_class_name("Grid-col")[:1]) > 0):
   #---------------------------------------------------------------------------------------
   print(product_name, "\n", item_price, "\n", product_link, "\n", company_name, "\n------------")
 
-  # hook to see if all items have been scraped on the page and use it to navigate to next page
-  if item_counter+1 == len(li_items[:1]):
-    print("page 2")
-    # incrementing the page number to match the links page number 
-    page_counter = page_counter + 1
-    # finding the page number and storing the index
-    page_no = dynamic_link.find(str(page_counter), 245, 254)
-    # creating the new link by replacing the (page=1) part of the link with my incremented counter
-    # replacign the entire page=1 part because if I only do the number it will change other numbers as well
-    next_page_link = dynamic_link.replace("page="+dynamic_link[page_no], "page="+str(page_counter+1))
-    # navigating to next page
-    driver.get(next_page_link)
-  
+  # need to increment here to not run into the IndexError
   item_counter = item_counter + 1
   
-  print(item_counter, 'inside while', ul)
+  # print("line 87\n", page_counter, next_page_link)
+  # hook to see if all items have been scraped on the page and use it to navigate to next page
+  if item_counter == len(li_items[:2]):
+    # setting item counter which lets me loop through the list to 0 after every page change otherwise the index is out of range
+    item_counter = 0
+    # incrementing the page number to match the links page number 
+    page_counter = page_counter + 1
+    # checking if it is first page and also the initial link, this is so taht the program can stay dynamic
+    if page_counter == 1 and category == 1:
+      # finding the page number and storing the index
+      page_no = dynamic_link.find(str(page_counter), 245, 254)
+      # creating the new link by replacing the (page=1) part of the link with my incremented counter
+      # replacign the entire page=1 part because if I only do the number it will change other numbers as well
+      next_page_link = dynamic_link.replace("page="+dynamic_link[page_no], "page="+str(page_counter+1))
+      driver.get(next_page_link)
+    else:
+      page_no = next_page_link.find(str(page_counter), 245, 254)
+      next_page_link = next_page_link.replace("page="+next_page_link[page_no], "page="+str(page_counter+1))
+      # nav to next page
+      driver.get(next_page_link)
 
-print('outside while', ul)
-
+  
 # TODO 1: figure out navigation between pages by changing the (dynamic_link) imported from secrets - hz 07/01
 # TODO 2: switch to another category when there is no more products to scrape in one category - hz 07/02
 # TODO 3: figure out optimal way to modify the link and automate moving categories -hz
