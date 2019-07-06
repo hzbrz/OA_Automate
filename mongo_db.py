@@ -4,6 +4,7 @@ myclient = pymongo.MongoClient("mongodb://localhost:27017/")
 
 mydb = myclient["oadb1"]
 
+# this func combines all the items of same categories and makes a better dictionary for checking for duplicates
 def create_db_dict(databse):
   products_list = []
   test = {"electronics": {}, "toys": {}, "books": {}}
@@ -17,14 +18,11 @@ def create_db_dict(databse):
   for i in range(len(products_list)):
     try:
       elec.append(products_list[i]["electronics"])
-      pprint.pprint("elelc")
     except KeyError:
       try:
         toys.append(products_list[i]["toys"])
-        print("je;;p")
       except KeyError:
         books.append(products_list[i]["books"])
-        print('bppls')
 
   for i in elec:
     for k, v in i.items():
@@ -37,3 +35,8 @@ def create_db_dict(databse):
       test["books"][k] = v
 
   return test
+
+
+# test_dict = create_db_dict(mydb)
+# test = mydb["test_coll"]
+# test.insert(test_dict, check_keys=False)

@@ -6,6 +6,9 @@ from secrets import dynamic_link, toys, books, electronics
 from mongo_db import mydb, create_db_dict
 import time, pyperclip, pprint
 
+# getting the walmart products collection for the mongodb database
+walmart_collection = mydb["walmart_products"]
+
 # main driver
 driver = webdriver.Chrome()
 # goes to the initial link
@@ -53,38 +56,20 @@ def create_new_tab(detail_page_link):
 
   return company_name
 
-# getting the walmart products collection for the mongodb database, I will use this to insert and check for products
-# that already been inserted
-walmart_collection = mydb["walmart_products"]
-
-# going to use this list which will hold the dictionary from the db and use it to check for keys that exist in db already
-products_list = []
-walmart_collection = mydb["walmart_products"]
-for products in walmart_collection.find():
-  products_list.append(products)
+# this is a dictionary of the databse, but all items grouped into their categories made easy for checking for duplicates
+products_dict = create_db_dict(mydb)
 
 # category checking and populating my ditionaries, and checking in the databse if an item exists so that I do not put in same items
 def create_dicts(walmart_cat, item_name, item_price, link, company_name):
-  # if the database is not empty, then go ahead and compare for selective insertions
-  if len(products_list) > 0:
-    # if category is electrionics and if the item is already not inserted in the databse then put it in the dictionary
-    if walmart_cat == 0 and item_name not in products_list[0]["electronics"]:
-      electronics_dict["electronics"][item_name] = {"price": item_price, "link": link, "company": company_name}
-    elif walmart_cat == 1 and item_name not in products_list[1]["toys"]:
-      toys_dict["toys"][item_name] = {"price": item_price, "link": link, "company": company_name}
-    elif walmart_cat == 2 and item_name not in products_list[2]["books"]:
-      books_dict["books"][item_name] = {"price": item_price, "link": link, "company": company_name}
-    else:
-      print(item_name, " data already exists in db")  
+  # if category is electrionics and if the item is already not inserted in the databse then put it in the dictionary
+  if walmart_cat == 0 and item_name not in products_dict["electronics"]:
+    electronics_dict["electronics"][item_name] = {"price": item_price, "link": link, "company": company_name}
+  elif walmart_cat == 1 and item_name not in products_dict["toys"]:
+    toys_dict["toys"][item_name] = {"price": item_price, "link": link, "company": company_name}
+  elif walmart_cat == 2 and item_name not in products_dict["books"]:
+    books_dict["books"][item_name] = {"price": item_price, "link": link, "company": company_name}
   else:
-    print("no items in database yet")
-    # first time population of databse, not checking if items exist because databse is empty
-    if walmart_cat == 0:
-      electronics_dict["electronics"][item_name] = {"price": item_price, "link": link, "company": company_name}
-    elif walmart_cat == 1:
-      toys_dict["toys"][item_name] = {"price": item_price, "link": link, "company": company_name}
-    elif walmart_cat == 2 :
-      books_dict["books"][item_name] = {"price": item_price, "link": link, "company": company_name}
+    print(item_name, " data already exists in db")  
   
 
 while(True):
@@ -119,7 +104,7 @@ while(True):
   ul = product_div.find_element_by_class_name("search-result-gridview-items")
   
   # getting all list items that contain each item, also putting this inside the while so the list updates every loop
-  li_items = ul.find_elements_by_class_name("Grid-col")[:4]
+  li_items = ul.find_elements_by_class_name("Grid-col")
   
   # getting inside the list item so I can get more data for each item
   li_inner = li_items[item_counter].find_element_by_class_name("search-result-gridview-item")
@@ -143,7 +128,7 @@ while(True):
   item_counter = item_counter + 1
 
   # hook to see if all items have been scraped on the page and use it to navigate to next page
-  if item_counter == len(li_items[:4]):
+  if item_counter == len(li_items):
     # setting item counter which lets me loop through the list to 0 after every page change otherwise the index is out of range
     item_counter = 0
     # incrementing the page number to match the links page number 
@@ -162,12 +147,21 @@ while(True):
       # nav to next page
       driver.get(next_page_link)
 
+# print(electronics_dict["electronics"], toys_dict["toys"], books_dict["books"])
+# checking if a dict is empty, dict returns False if empty and True if not
+if bool(electronics_dict["electronics"]) == True:
+  electronics_insert = walmart_collection.insert(electronics_dict, check_keys=False)
+  print("\n--------------------------------------------------------------------")
+  print("new electronics data inserted")
+if bool(toys_dict["toys"]) == True:
+  toys_insert = walmart_collection.insert(toys_dict, check_keys=False)
+  print("\n--------------------------------------------------------------------")
+  print("new toys data inserted")
+if bool(books_dict["books"]) == True:
+  books_insert = walmart_collection.insert(books_dict, check_keys=False)
+  print("\n--------------------------------------------------------------------")
+  print("new books data inserted")
 
-electronics_insert = walmart_collection.insert(electronics_dict, check_keys=False)
-toys_insert = walmart_collection.insert(toys_dict, check_keys=False)
-books_insert = walmart_collection.insert(books_dict, check_keys=False)
-print("\n--------------------------------------------------------------------")
-print("data inserted")
 
 
 # TODO 1: figure out navigation between pages by changing the (dynamic_link) imported from secrets - hz 07/01 - DONE
@@ -180,7 +174,7 @@ print("data inserted")
                  ### price
                  ### product link
                  ### company name
-# TODO 5: Store dict local or in database or firebase (idk) - hz
+# TODO 5: Store dict local or in database or firebase (idk) - hz - DONE
 # TODO GEN: turn code into componenets through functions (GENERAL GOAL)
 
 driver.close()
