@@ -10,6 +10,9 @@ start_time = time.time()
 # getting the walmart products collection for the mongodb database
 walmart_collection = mydb["walmart_products"]
 
+# deleting all document in collection so that there is no old data, since clearance section of walmart updates
+walmart_collection.delete_many({})
+
 # main driver
 driver = webdriver.Chrome()
 # goes to the initial link
@@ -57,20 +60,17 @@ def create_new_tab(detail_page_link):
 
   return company_name
 
-# this is a dictionary of the databse, but all items grouped into their categories made easy for checking for duplicates
-products_dict = create_db_dict(mydb)
 
-# category checking and populating my ditionaries, and checking in the databse if an item exists so that I do not put in same items
+# category checking and creating dictionaries for db
 def create_dicts(walmart_cat, item_name, item_price, link, company_name):
-  # if category is electrionics and if the item is already not inserted in the databse then put it in the dictionary
-  if walmart_cat == 0 and item_name not in products_dict["electronics"]:
+  if walmart_cat == 0:
     electronics_dict["electronics"][item_name] = {"price": item_price, "link": link, "company": company_name}
-  elif walmart_cat == 1 and item_name not in products_dict["toys"]:
+  elif walmart_cat == 1:
     toys_dict["toys"][item_name] = {"price": item_price, "link": link, "company": company_name}
-  elif walmart_cat == 2 and item_name not in products_dict["books"]:
+  elif walmart_cat == 2:
     books_dict["books"][item_name] = {"price": item_price, "link": link, "company": company_name}
   else:
-    print(item_name, " data already exists in db")  
+    print("not a valid category")  
   
 
 while(True):
@@ -148,20 +148,12 @@ while(True):
       # nav to next page
       driver.get(next_page_link)
 
-# print(electronics_dict["electronics"], toys_dict["toys"], books_dict["books"])
-# checking if a dict is empty, dict returns False if empty and True if not
-if bool(electronics_dict["electronics"]) == True:
-  electronics_insert = walmart_collection.insert(electronics_dict, check_keys=False)
-  print("\n--------------------------------------------------------------------")
-  print("new electronics data inserted")
-if bool(toys_dict["toys"]) == True:
-  toys_insert = walmart_collection.insert(toys_dict, check_keys=False)
-  print("\n--------------------------------------------------------------------")
-  print("new toys data inserted")
-if bool(books_dict["books"]) == True:
-  books_insert = walmart_collection.insert(books_dict, check_keys=False)
-  print("\n--------------------------------------------------------------------")
-  print("new books data inserted")
+electronics_insert = walmart_collection.insert(electronics_dict, check_keys=False)
+print("new electronics data inserted")
+toys_insert = walmart_collection.insert(toys_dict, check_keys=False)
+print("new toys data inserted")
+books_insert = walmart_collection.insert(books_dict, check_keys=False)
+print("new books data inserted")
 
 
 
