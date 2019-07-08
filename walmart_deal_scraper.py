@@ -6,6 +6,7 @@ from secrets import dynamic_link, toys, books, electronics
 from mongo_db import mydb, create_db_dict
 import time, pyperclip, pprint
 
+start_time = time.time()
 # getting the walmart products collection for the mongodb database
 walmart_collection = mydb["walmart_products"]
 
@@ -178,4 +179,7 @@ if bool(books_dict["books"]) == True:
 # TODO GEN: turn code into componenets through functions (GENERAL GOAL)
 
 driver.close()
+
+elapsed = time.time() - start_time
+print(elapsed/60)
 
