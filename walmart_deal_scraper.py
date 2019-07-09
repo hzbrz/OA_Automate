@@ -26,6 +26,7 @@ page_counter = 0
 next_page_link = ""
 # item_counter to track if all items in page has been scraped
 item_counter = 0
+db_counter = 0
 
 # electronics dictionary holds electronics data
 electronics_dict = {"electronics": {}}
@@ -62,13 +63,13 @@ def create_new_tab(detail_page_link):
 
 
 # category checking and creating dictionaries for db
-def create_dicts(walmart_cat, item_name, item_price, link, company_name):
+def create_dicts(walmart_cat, item_name, item_price, link, company_name, db_id):
   if walmart_cat == 0:
     electronics_dict["electronics"][item_name] = {"price": item_price, "link": link, "company": company_name}
   elif walmart_cat == 1:
-    toys_dict["toys"][item_name] = {"price": item_price, "link": link, "company": company_name}
+    toys_dict["toys"][item_name] = { "price": item_price, "link": link, "company": company_name}
   elif walmart_cat == 2:
-    books_dict["books"][item_name] = {"price": item_price, "link": link, "company": company_name}
+    books_dict["books"][item_name] = { "price": item_price, "link": link, "company": company_name}
   else:
     print("not a valid category")  
   
@@ -105,13 +106,14 @@ while(True):
   ul = product_div.find_element_by_class_name("search-result-gridview-items")
   
   # getting all list items that contain each item, also putting this inside the while so the list updates every loop
-  li_items = ul.find_elements_by_class_name("Grid-col")
+  li_items = ul.find_elements_by_class_name("Grid-col")[:1]
   
   # getting inside the list item so I can get more data for each item
   li_inner = li_items[item_counter].find_element_by_class_name("search-result-gridview-item")
 
   # getting the name 
-  product_name = li_inner.find_element_by_class_name("product-title-link").get_attribute("title")
+  title = li_inner.find_element_by_class_name("product-title-link").get_attribute("title")
+  product_name = ''.join(c for c in title if c not in "%!(){}<>\"\",+/\\#&'")
 
   # getting the item link to its details page
   product_link = li_inner.find_element_by_class_name("product-title-link").get_attribute("href")
@@ -129,7 +131,7 @@ while(True):
   item_counter = item_counter + 1
 
   # hook to see if all items have been scraped on the page and use it to navigate to next page
-  if item_counter == len(li_items):
+  if item_counter == len(li_items[:1]):
     # setting item counter which lets me loop through the list to 0 after every page change otherwise the index is out of range
     item_counter = 0
     # incrementing the page number to match the links page number 
