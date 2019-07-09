@@ -30,7 +30,7 @@ for k, v in walmart_products_dict["books"].items():
 
 # dictionary that has the name and the barcode for easy access after finding closest match
 matching_dict = {}
-possible_match_barcode = []
+possible_match_barcodes = []
 print(len(upc_request_urls))
 for item_name in upc_request_urls:
   # counter to keep track of the barcodes 
@@ -44,19 +44,13 @@ for item_name in upc_request_urls:
   ul = soup.select("#product-search-results")
   # getting all li's
   li = ul[0].select('li > div > p')
-  # using this loop getting the barcodes, barcodes are count+1 indices in the arr
-  while count < len(li):
-    try:
-      barcode = li[count+1].getText()[9:]
-    except IndexError:
-      print("no more items on page")
-    possible_match_barcode.append(barcode)
-    # each item are going to have 2 barcodes to check on amazon seller
-    matching_dict[item_name] = possible_match_barcode[:2]
-    count = count + 4
+  # looking for the word Barcode within the first 7 items of the array and then getting the barcode from that
+  arr = [n.getText()[9:] for n in li[:7] if "Barcode: " in n.getText()]
+  matching_dict[item_name] = arr
 
 # creating new collection of the dictionary of barcodes
 barcodes_for_amazon.insert(matching_dict, check_keys=False)
 print("barcodes inserted")
+
 elapsed_time = time.time() - start_time
-print(elapsed_time)
+print(elapsed_time/60)
