@@ -63,7 +63,7 @@ def create_new_tab(detail_page_link):
 
 
 # category checking and creating dictionaries for db
-def create_dicts(walmart_cat, item_name, item_price, link, company_name, db_id):
+def create_dicts(walmart_cat, item_name, item_price, link, company_name):
   if walmart_cat == 0:
     electronics_dict["electronics"][item_name] = {"price": item_price, "link": link, "company": company_name}
   elif walmart_cat == 1:
@@ -106,14 +106,15 @@ while(True):
   ul = product_div.find_element_by_class_name("search-result-gridview-items")
   
   # getting all list items that contain each item, also putting this inside the while so the list updates every loop
-  li_items = ul.find_elements_by_class_name("Grid-col")[:1]
+  li_items = ul.find_elements_by_class_name("Grid-col")
   
   # getting inside the list item so I can get more data for each item
   li_inner = li_items[item_counter].find_element_by_class_name("search-result-gridview-item")
 
   # getting the name 
   title = li_inner.find_element_by_class_name("product-title-link").get_attribute("title")
-  product_name = ''.join(c for c in title if c not in "%!(){}<>\"\",+/\\#&'")
+  # [n for n in item if (expression testing if it has the character)], checking for any of those chars in the string
+  product_name = ''.join(c for c in title if c not in ".%!(){}<>\"\",+/\\#&'?")
 
   # getting the item link to its details page
   product_link = li_inner.find_element_by_class_name("product-title-link").get_attribute("href")
@@ -131,7 +132,7 @@ while(True):
   item_counter = item_counter + 1
 
   # hook to see if all items have been scraped on the page and use it to navigate to next page
-  if item_counter == len(li_items[:1]):
+  if item_counter == len(li_items):
     # setting item counter which lets me loop through the list to 0 after every page change otherwise the index is out of range
     item_counter = 0
     # incrementing the page number to match the links page number 
