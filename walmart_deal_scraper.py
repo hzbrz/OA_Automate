@@ -119,8 +119,12 @@ while(True):
   # getting the item link to its details page
   product_link = li_inner.find_element_by_class_name("product-title-link").get_attribute("href")
 
-  # getting the item price
-  item_price = li_inner.find_element_by_class_name("price-group").get_attribute("aria-label")
+  # getting the item price, sometimes price-group element is not there and it is replaced with price-old-text
+  try:
+    item_price = li_inner.find_element_by_class_name("price-group").get_attribute("aria-label")
+  except NoSuchElementException:
+    item_price = "Price not found"
+    print("price was not found...price bug")
   
   # capturing the func returned company name
   company_name = create_new_tab(product_link)

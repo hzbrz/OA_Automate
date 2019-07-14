@@ -44,9 +44,11 @@ for item_name in upc_request_urls:
   ul = soup.select("#product-search-results")
   # getting all li's
   li = ul[0].select('li > div > p')
+  key = item_name.replace("-", " ")
   # looking for the word Barcode within the first 7 items of the array and then getting the barcode from that
   arr = [n.getText()[9:] for n in li[:7] if "Barcode: " in n.getText()]
-  matching_dict[item_name] = arr
+  print(key, arr)
+  matching_dict[key] = arr
 
 # creating new collection of the dictionary of barcodes
 barcodes_for_amazon.insert(matching_dict, check_keys=False)
